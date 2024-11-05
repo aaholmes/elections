@@ -66,94 +66,133 @@ function calculateAndUpdateChart() {
             return;
         }
         
-        const canvas = document.getElementById('distributionChart');
-        if (!canvas) {
-            console.error('Canvas element not found');
-            return;
-        }
-
-        const ctx = canvas.getContext('2d');
-        
-        // Destroy existing chart if it exists
-        if (window.distributionChart instanceof Chart) {
-            window.distributionChart.destroy();
-        }
-
-        // Calculate probabilities
-        const repProb = results.distribution.slice(0, 269).reduce((a, b) => a + b, 0) * 100;
-        const tieProb = results.distribution[269] * 100;
-        const demProb = results.distribution.slice(270).reduce((a, b) => a + b, 0) * 100;
-
-        // Bin the data
-        const binSize = 10;
-        const binnedData = Array(54).fill(0);
-        results.distribution.forEach((prob, votes) => {
-            const binIndex = Math.floor(votes / binSize);
-            if (binIndex < 54) binnedData[binIndex] += prob;
-        });
-
-        // Create new chart
-        window.distributionChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: Array.from({length: 54}, (_, i) => i * binSize),
-                datasets: [{
-                    data: binnedData.map(p => p * 100),
-                    backgroundColor: Array.from({length: 54}, (_, i) => 
-                        i * binSize > 269 ? 'rgba(0, 0, 255, 0.6)' :
-                        i * binSize < 269 ? 'rgba(255, 0, 0, 0.6)' :
-                        'rgba(128, 128, 128, 0.6)'
-                    )
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Probability (%)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Electoral Votes'
-                        }
-                    }
-                }
-            },
-            plugins: [{
-                id: 'probability-labels',
-                afterDraw: (chart) => {
-                    const ctx = chart.ctx;
-                    ctx.save();
-                    ctx.font = 'bold 24px Arial';
-                    ctx.textAlign = 'center';
-                    
-                    // Republican probability
-                    ctx.fillStyle = 'rgb(255, 0, 0)';
-                    ctx.fillText(`Republican Win: ${repProb.toFixed(1)}%`, chart.width * 0.2, 30);
-                    
-                    // Tie probability (if significant)
-                    if (tieProb > 0.001) {
-                        ctx.fillStyle = 'rgb(128, 128, 128)';
-                        ctx.fillText(`Tie: ${tieProb.toFixed(1)}%`, chart.width * 0.5, 30);
-                    }
-                    
-                    // Democratic probability
-                    ctx.fillStyle = 'rgb(0, 0, 255)';
-                    ctx.fillText(`Democratic Win: ${demProb.toFixed(1)}%`, chart.width * 0.8, 30);
-                    
-                    ctx.restore();
-                }
-            }]
-        });
+        createDistributionChart(results.distribution);
     })
     .catch(error => console.error('Error:', error));
+}
+
+function createDistributionChart(distribution) {
+    const ctx = document.getElementById('distributionChart');
+    if (!ctx) return;
+
+    if (window.distributionChart instanceof Chart) {
+        window.distributionChart.destroy();
+    }
+
+    // Calculate probabilities
+    const repProb = distribution.slice(0, 269).reduce((a, b) => a + b, 0) * 100;
+    const tieProb = distribution[269] * 100;
+    const demProb = distribution.slice(270).reduce((a, b) => a + b, 0) * 100;
+
+    // Calculate overall mean and std dev
+    let totalMean = 0;
+    let totalVar = 0;
+    
+    // Calculate overall mean
+    for (let ev = 0; ev < distribution.length; ev++) {
+        totalMean += ev * distribution[ev];
+    }
+
+    // Calculate overall variance
+    for (let ev = 0; ev < distribution.length; ev++) {
+        totalVar += Math.pow(ev - totalMean, 2) * distribution[ev];
+    }
+    
+    const totalStdDev = Math.sqrt(totalVar);
+    const repMean = 538 - totalMean;
+    const demMean = totalMean;
+
+    // Bin the data
+    const binSize = 10;
+    const numBins = Math.ceil(539 / binSize);
+    const binnedData = Array(numBins).fill(0);
+    distribution.forEach((prob, ev) => {
+        const binIndex = Math.floor(ev / binSize);
+        if (binIndex < numBins) {
+            binnedData[binIndex] += prob;
+        }
+    });
+
+    // Create color arrays
+    const backgroundColors = [];
+    const borderColors = [];
+    for (let i = 0; i < numBins; i++) {
+        if (i * binSize < 270) {
+            backgroundColors.push('rgba(255, 0, 0, 0.6)');
+            borderColors.push('rgba(255, 0, 0, 1)');
+        } else {
+            backgroundColors.push('rgba(0, 0, 255, 0.6)');
+            borderColors.push('rgba(0, 0, 255, 1)');
+        }
+    }
+
+    window.distributionChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Array.from({length: numBins}, (_, i) => i * binSize),
+            datasets: [{
+                data: binnedData.map(p => p * 100),
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Probability (%)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Electoral Votes'
+                    }
+                }
+            }
+        },
+        plugins: [{
+            id: 'probability-labels',
+            afterDraw: (chart) => {
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.textAlign = 'center';
+                
+                // Republican probabilities and stats
+                ctx.fillStyle = 'rgb(255, 0, 0)';
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText(`Republican Win: ${repProb.toFixed(1)}%`, chart.width * 0.2, 30);
+                if (repProb > 0) {
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillText(`${Math.round(repMean)} ± ${Math.round(totalStdDev)} \nElectoral Votes`, chart.width * 0.2, 55);
+                }
+                
+                // Tie probability (if significant)
+                if (tieProb > 0.001) {
+                    ctx.fillStyle = 'rgb(128, 128, 128)';
+                    ctx.font = 'bold 24px Arial';
+                    ctx.fillText(`Tie: ${tieProb.toFixed(1)}%`, chart.width * 0.5, 30);
+                }
+                
+                // Democratic probabilities and stats
+                ctx.fillStyle = 'rgb(0, 0, 255)';
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText(`Democratic Win: ${demProb.toFixed(1)}%`, chart.width * 0.8, 30);
+                if (demProb > 0) {
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillText(`${Math.round(demMean)} ± ${Math.round(totalStdDev)} \nElectoral Votes`, chart.width * 0.8, 55);
+                }
+                
+                ctx.restore();
+            }
+        }]
+    });
 } 
