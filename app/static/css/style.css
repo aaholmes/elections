@@ -70,11 +70,9 @@ input:checked + .slider:before {
 
 .state-card {
     background: white;
-    border: 1px solid #ddd;
-    padding: 1rem;
+    padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
 }
 
 .state-card:hover {
@@ -102,11 +100,8 @@ input[type="number"] {
 
 /* Results Section */
 .results-section {
-    margin-top: 2rem;
-    padding: 2rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    display: block;
 }
 
 .ev-meter {
@@ -159,17 +154,16 @@ input[type="number"] {
 }
 
 .distribution-chart-container {
-    margin-top: 1rem;
+    width: 100%;
+    height: 400px;
+    margin-bottom: 2rem;
     padding: 1rem;
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    position: relative;
-    height: 400px;
-    width: 100%;
 }
 
-canvas#distributionChart {
+#distributionChart {
     width: 100% !important;
     height: 100% !important;
 }
@@ -192,4 +186,66 @@ canvas#distributionChart {
     font-weight: bold;
     font-size: 1.3em;
     color: #2196F3;
+}
+
+.probability-slider-container {
+    position: relative;
+    padding: 10px 0;
+}
+
+.probability-slider {
+    width: 100%;
+    height: 20px;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, 
+        rgb(255, 0, 0) 0%, 
+        rgb(255, 200, 200) 40%,
+        rgb(200, 200, 255) 60%,
+        rgb(0, 0, 255) 100%
+    );
+    border-radius: 10px;
+    outline: none;
+}
+
+.probability-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border: 2px solid #666;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.probability-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: white;
+    border: 2px solid #666;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.slider-value {
+    display: block;
+    text-align: center;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+}
+
+.rep-label {
+    color: red;
+    font-weight: bold;
+}
+
+.dem-label {
+    color: blue;
+    font-weight: bold;
 }

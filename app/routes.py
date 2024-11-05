@@ -12,28 +12,16 @@ def index():
 def calculate():
     state_data = {}
     for state_code in STATE_DATA:
-        # Check for quick mode input
-        quick_prob = request.form.get(f'{state_code}-quick')
-        if quick_prob:
-            state_data[state_code] = {
-                'probability': float(quick_prob),
-                'votes': STATE_DATA[state_code]['votes']
-            }
-        else:
-            # Advanced mode
-            poll = request.form.get(f'{state_code}-poll')
-            margin = request.form.get(f'{state_code}-margin')
-            if poll and margin:
+        prob_str = request.form.get(f'{state_code}-quick')
+        if prob_str:
+            try:
+                prob = float(prob_str)
                 state_data[state_code] = {
-                    'poll': float(poll),
-                    'margin': float(margin),
+                    'probability': prob,
                     'votes': STATE_DATA[state_code]['votes']
                 }
+            except ValueError:
+                print(f"Error with probability for {state_code}: {prob_str}")
     
     results = calculate_probability(state_data)
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify(results)
-    return render_template('index.html', 
-                         states=STATE_DATA, 
-                         results=results)
+    return jsonify(results)
