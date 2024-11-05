@@ -1,4 +1,4 @@
-# Electoral College Predictor MVP
+# Electoral College Predictor
 
 ## Project Description
 
