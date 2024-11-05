@@ -65,9 +65,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial color update
     updateStateCardColors();
 
-    function createDistributionChart(distribution) {
-        const ctx = document.getElementById('distributionChart').getContext('2d');
+    function updateResults(results) {
+        console.log('Updating results:', results);  // Debug log
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.style.display = 'block';
         
+        if (results.distribution) {
+            console.log('Distribution data:', results.distribution);  // Debug log
+            createDistributionChart(results.distribution);
+        } else {
+            console.log('No distribution data found');  // Debug log
+        }
+    }
+
+    function createDistributionChart(distribution) {
+        const ctx = document.getElementById('distributionChart');
+        if (!ctx) {
+            console.error('Could not find distributionChart canvas element');
+            return;
+        }
+
+        // Get the context once
+        const context = ctx.getContext('2d');
+        
+        // Properly destroy existing chart
+        if (window.distributionChart instanceof Chart) {
+            window.distributionChart.destroy();
+        }
+
         // Create labels for every 10 electoral votes
         const labels = Array.from({length: 54}, (_, i) => i * 10);
         
@@ -83,17 +108,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Convert to percentages
         const dataAsPercentages = data.map(p => p * 100);
 
-        // Create gradient for bars
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(33, 150, 243, 0.8)');   // Blue
+        // Create gradient
+        const gradient = context.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(33, 150, 243, 0.8)');
         gradient.addColorStop(1, 'rgba(33, 150, 243, 0.2)');
 
-        // Destroy existing chart if it exists
-        if (window.distributionChart) {
-            window.distributionChart.destroy();
-        }
-
-        window.distributionChart = new Chart(ctx, {
+        // Create new chart
+        window.distributionChart = new Chart(context, {
             type: 'bar',
             data: {
                 labels: labels,
@@ -118,8 +139,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return `Probability: ${context.raw.toFixed(1)}%`;
                             },
                             title: function(context) {
-                                const value = context[0].label;
-                                return `${value}-${parseInt(value) + 9} Electoral Votes`;
+                                const value = parseInt(context[0].label);
+                                return `${value}-${value + 9} Electoral Votes`;
                             }
                         }
                     }
@@ -140,43 +161,39 @@ document.addEventListener('DOMContentLoaded', function() {
                             text: 'Probability (%)'
                         },
                         beginAtZero: true,
-                        max: Math.ceil(Math.max(...dataAsPercentages) * 1.1), // Add 10% padding
+                        max: Math.ceil(Math.max(...dataAsPercentages) * 1.1),
                         grid: {
                             color: 'rgba(0, 0, 0, 0.1)'
                         }
                     }
-                },
-                annotation: {
-                    annotations: [{
-                        type: 'line',
-                        mode: 'vertical',
-                        scaleID: 'x',
-                        value: 27, // 270 votes / 10 (bin size)
-                        borderColor: 'rgba(255, 0, 0, 0.5)',
-                        borderWidth: 2,
-                        label: {
-                            content: '270 Electoral Votes',
-                            enabled: true,
-                            position: 'top'
-                        }
-                    }]
                 }
             }
         });
     }
 
-    // Update the form submit handler to create the chart
+    // Update form submission handler
     document.getElementById('prediction-form').addEventListener('submit', function(e) {
-        // ... previous validation code ...
+        e.preventDefault();
+        const formData = new FormData(this);
         
-        // After form submission and receiving results
-        if (window.results && window.results.distribution) {
-            createDistributionChart(window.results.distribution);
-        }
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(results => {
+            console.log('Results received:', results);  // Debug log
+            updateResults(results);
+        })
+        .catch(error => console.error('Error:', error));
     });
 
     // Create chart on page load if results exist
     if (window.results && window.results.distribution) {
+        console.log('Creating chart with distribution:', window.results.distribution);  // Debug log
         createDistributionChart(window.results.distribution);
     }
 }); 

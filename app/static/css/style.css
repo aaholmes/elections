@@ -164,5 +164,12 @@ input[type="number"] {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    height: 300px;
-} 
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+canvas#distributionChart {
+    width: 100% !important;
+    height: 100% !important;
+}

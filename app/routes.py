@@ -31,7 +31,9 @@ def calculate():
                 }
     
     results = calculate_probability(state_data)
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify(results)
     return render_template('index.html', 
                          states=STATE_DATA, 
-                         results=results,
-                         distribution=results['distribution'])
+                         results=results)

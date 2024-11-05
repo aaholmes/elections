@@ -72,12 +72,11 @@
         {% if results %}
             <p class="probability">Probability of winning: <span class="highlight">{{ results.probability }}%</span></p>
             <p class="ev-count">Expected electoral votes: <span class="highlight">{{ results.expected_votes }}</span></p>
-            
-            <!-- Add canvas for distribution chart -->
-            <div class="distribution-chart-container">
-                <canvas id="distributionChart"></canvas>
-            </div>
         {% endif %}
+        
+        <div class="distribution-chart-container">
+            <canvas id="distributionChart" width="400" height="200"></canvas>
+        </div>
     </div>
 </div>
 {% endblock %}
