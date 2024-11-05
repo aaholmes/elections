@@ -2,22 +2,11 @@
 
 {% block content %}
 <div class="container">
-    <!-- Distribution Chart -->
-    <div class="distribution-chart-container">
-        <canvas id="distributionChart"></canvas>
-    </div>
-
-    <!-- Map -->
-    <div class="map-container">
+    <div class="map-section">
         <div id="us-map"></div>
-        <div id="state-hover-info" class="state-hover-info">
-            <h3 class="state-name"></h3>
-            <p class="electoral-votes"></p>
-            <div class="probability-slider-container">
-                <input type="range" class="probability-slider" min="1" max="99" value="50" step="24.5">
-                <span class="slider-value">Toss-up</span>
-            </div>
-        </div>
+    </div>
+    <div class="chart-section">
+        <canvas id="distributionChart"></canvas>
     </div>
 </div>
 

@@ -315,11 +315,9 @@ svg {
     display: none;
     position: absolute;
     background: white;
-    padding: 15px;
+    padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    z-index: 9999;
-    pointer-events: auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     min-width: 250px;
     border: 1px solid #ccc;
 }
@@ -330,8 +328,8 @@ svg {
 
 .hover-content h3 {
     margin: 0 0 10px 0;
-    color: #333;
     font-size: 1.2em;
+    color: #333;
 }
 
 .hover-content p {
@@ -363,4 +361,108 @@ svg {
 
 .state:hover {
     opacity: 0.8;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 20px;
+    max-width: 2400px;
+    margin: 0 auto;
+}
+
+.chart-section {
+    height: 300px;
+    width: 100%;
+    order: 1;
+}
+
+.map-section {
+    width: 100%;
+    height: 800px;
+    order: 2;
+}
+
+#us-map {
+    width: 100%;
+    height: 100%;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+#distributionChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.state-hover-info {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 300px;
+    z-index: 9999;
+    position: absolute;
+}
+
+.probability-slider-container {
+    margin-top: 15px;
+}
+
+.probability-slider {
+    width: 100%;
+    margin: 10px 0;
+}
+
+.probability-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+.slider-value {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.current-level {
+    font-size: 1.2em;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.percentages {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.probability-slider-container {
+    margin-top: 15px;
+}
+
+.probability-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+.hover-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.hover-content p {
+    margin: 5px 0;
 }

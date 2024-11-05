@@ -113,7 +113,12 @@ function createDistributionChart(distribution) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: false
+                }
             },
             scales: {
                 y: {

@@ -2,13 +2,61 @@ let stateMap;
 let hoverInfo;
 let currentHoveredState = null;
 
+// Define discrete probabilities and their colors
+const PROBABILITY_LEVELS = [
+    { name: 'Safe R', value: 10, color: '#FF0000' },
+    { name: 'Likely R', value: 30, color: '#FF9999' },
+    { name: 'Lean R', value: 45, color: '#FFB6B6' },
+    { name: 'Toss-up', value: 50, color: '#CCCCCC' },
+    { name: 'Lean D', value: 55, color: '#B6B6FF' },
+    { name: 'Likely D', value: 70, color: '#9999FF' },
+    { name: 'Safe D', value: 90, color: '#0000FF' }
+];
+
+function getStateColor(probability) {
+    // Find the closest probability level
+    let closest = PROBABILITY_LEVELS[0];
+    let minDiff = Math.abs(probability - closest.value);
+    
+    for (const level of PROBABILITY_LEVELS) {
+        const diff = Math.abs(probability - level.value);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closest = level;
+        }
+    }
+    return closest.color;
+}
+
+function getProbabilityLevel(probability) {
+    // Find the closest level name
+    let closest = PROBABILITY_LEVELS[0];
+    let minDiff = Math.abs(probability - closest.value);
+    
+    for (const level of PROBABILITY_LEVELS) {
+        const diff = Math.abs(probability - level.value);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closest = level;
+        }
+    }
+    return closest.name;
+}
+
+function getPercentages(value) {
+    return {
+        dem: value,
+        rep: 100 - value
+    };
+}
+
 async function initializeMap() {
     try {
         console.log("Starting map initialization");
         
         const mapContainer = document.getElementById('us-map');
-        const width = 800;
-        const height = 500;
+        const width = mapContainer.clientWidth;
+        const height = mapContainer.clientHeight;
         
         // Clear existing elements
         d3.select('#us-map svg').remove();
@@ -52,13 +100,12 @@ async function initializeMap() {
             .on('mouseover', function(event, d) {
                 const stateName = d.properties.NAME;
                 const stateCode = STATE_NAMES_TO_POSTAL[stateName];
-                console.log("State Name:", stateName);
-                console.log("State Code:", stateCode);
                 
                 if (stateCode && STATE_DATA[stateCode]) {
                     const currentValue = stateSliders[stateCode] || 50;
+                    const currentLevel = getProbabilityLevel(currentValue);
+                    const percentages = getPercentages(currentValue);
                     
-                    // Show hover info
                     hoverInfo
                         .style('display', 'block')
                         .style('left', (event.pageX + 10) + 'px')
@@ -67,15 +114,23 @@ async function initializeMap() {
                             <div class="hover-content">
                                 <h3>${stateName}</h3>
                                 <p><strong>${STATE_DATA[stateCode].votes} Electoral Votes</strong></p>
+                                <p class="current-level" style="color: ${PROBABILITY_LEVELS.find(l => l.name === currentLevel).color}">
+                                    <strong>${currentLevel}</strong>
+                                </p>
                                 <div class="probability-slider-container">
-                                    <p>Democratic Win Probability:</p>
                                     <input type="range" 
                                         class="probability-slider" 
-                                        min="1" 
-                                        max="99" 
-                                        value="${currentValue}" 
+                                        min="0" 
+                                        max="6" 
+                                        value="${PROBABILITY_LEVELS.findIndex(l => l.name === currentLevel)}"
                                         step="1">
-                                    <span class="slider-value">${currentValue}%</span>
+                                    <div class="probability-ticks">
+                                        ${PROBABILITY_LEVELS.map(l => `<span style="color:${l.color}">${l.name}</span>`).join('')}
+                                    </div>
+                                    <div class="percentages">
+                                        <span class="rep-percent" style="color: #FF0000">${percentages.rep}%</span>
+                                        <span class="dem-percent" style="color: #0000FF">${percentages.dem}%</span>
+                                    </div>
                                 </div>
                             </div>
                         `);
@@ -84,15 +139,21 @@ async function initializeMap() {
                     const slider = hoverInfo.select('.probability-slider').node();
                     if (slider) {
                         slider.oninput = function() {
-                            const value = this.value;
-                            stateSliders[stateCode] = parseInt(value);
-                            d3.select(`#${stateCode}`).style('fill', getStateColor(value));
-                            hoverInfo.select('.slider-value').text(value + '%');
+                            const level = PROBABILITY_LEVELS[parseInt(this.value)];
+                            stateSliders[stateCode] = level.value;
+                            const newPercentages = getPercentages(level.value);
+                            
+                            // Update everything immediately
+                            d3.select(`#${stateCode}`).style('fill', level.color);
+                            hoverInfo.select('.current-level')
+                                .text(level.name)
+                                .style('color', level.color);
+                            hoverInfo.select('.dem-percent').text(newPercentages.dem + '%');
+                            hoverInfo.select('.rep-percent').text(newPercentages.rep + '%');
                             calculateAndUpdateChart();
                         };
                     }
                     
-                    // Highlight state
                     d3.select(this).style('opacity', 0.8);
                 }
             })
@@ -117,14 +178,6 @@ async function initializeMap() {
         console.error('Error in map initialization:', error);
         console.error('Error details:', error.message);
     }
-}
-
-function getStateColor(probability) {
-    if (probability <= 25) return '#FF0000';        // Safe R
-    if (probability <= 40) return '#FF9999';        // Likely R
-    if (probability <= 60) return '#CCCCCC';        // Toss-up
-    if (probability <= 75) return '#9999FF';        // Likely D
-    return '#0000FF';                               // Safe D
 }
 
 // Initialize map when document is ready
