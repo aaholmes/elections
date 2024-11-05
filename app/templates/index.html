@@ -1,30 +1,43 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="state-grid">
-    {% for state_code, state in states.items() %}
-    <div class="state-card">
-        <h3>{{ state.name }}</h3>
-        <p>Electoral Votes: {{ state.votes }}</p>
-        <div class="poll-input">
-            <label for="{{ state_code }}-poll">Poll %:</label>
-            <input type="number" 
-                   id="{{ state_code }}-poll" 
-                   name="{{ state_code }}-poll"
-                   min="0" 
-                   max="100" 
-                   step="0.1">
+<form id="prediction-form" method="POST" action="{{ url_for('main.calculate') }}">
+    <div class="state-grid">
+        {% for state_code, state in states.items() %}
+        <div class="state-card">
+            <h3>{{ state.name }}</h3>
+            <p>Electoral Votes: {{ state.votes }}</p>
+            <div class="poll-input">
+                <label for="{{ state_code }}-poll">Poll %:</label>
+                <input type="number" 
+                       id="{{ state_code }}-poll" 
+                       name="{{ state_code }}-poll"
+                       min="0" 
+                       max="100" 
+                       step="0.1">
+            </div>
+            <div class="margin-input">
+                <label for="{{ state_code }}-margin">Margin of Error:</label>
+                <input type="number" 
+                       id="{{ state_code }}-margin" 
+                       name="{{ state_code }}-margin"
+                       min="0" 
+                       max="20" 
+                       step="0.1">
+            </div>
         </div>
-        <div class="margin-input">
-            <label for="{{ state_code }}-margin">Margin of Error:</label>
-            <input type="number" 
-                   id="{{ state_code }}-margin" 
-                   name="{{ state_code }}-margin"
-                   min="0" 
-                   max="20" 
-                   step="0.1">
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+    <div class="form-actions">
+        <button type="submit" class="calculate-btn">Calculate Probability</button>
+    </div>
+</form>
+
+<div id="results" class="results-section" {% if not results %}style="display: none;"{% endif %}>
+    <h2>Results</h2>
+    {% if results %}
+        <p>Probability of winning: {{ results.probability }}%</p>
+        <p>Expected electoral votes: {{ results.expected_votes }}</p>
+    {% endif %}
 </div>
 {% endblock %}
