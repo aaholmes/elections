@@ -1,10 +1,10 @@
 function getProbabilityLabel(value) {
     const numValue = parseFloat(value);
-    if (numValue < 13) return "Safe R (99%)";
-    if (numValue < 38) return "Likely R (75%)";
-    if (numValue < 62) return "Toss-up (50%)";
-    if (numValue < 87) return "Likely D (75%)";
-    return "Safe D (99%)";
+    if (numValue < 13) return ["Safe R", "safe-r"];
+    if (numValue < 38) return ["Likely R", "likely-r"];
+    if (numValue < 62) return ["Toss-up", "toss-up"];
+    if (numValue < 87) return ["Likely D", "likely-d"];
+    return ["Safe D", "safe-d"];
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -17,10 +17,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize all sliders
     document.querySelectorAll('.probability-slider').forEach(slider => {
         slider.addEventListener('input', () => {
+            // Update label
+            const [label, className] = getProbabilityLabel(slider.value);
+            const valueDisplay = slider.nextElementSibling;
+            valueDisplay.textContent = label;
+            
+            // Remove all possible classes and add the current one
+            valueDisplay.classList.remove('safe-r', 'likely-r', 'toss-up', 'likely-d', 'safe-d');
+            valueDisplay.classList.add(className);
+            
             calculateAndUpdateChart();
         });
-        // Set initial labels
-        slider.nextElementSibling.textContent = getProbabilityLabel(slider.value);
+        
+        // Set initial labels and classes
+        const [label, className] = getProbabilityLabel(slider.value);
+        const valueDisplay = slider.nextElementSibling;
+        valueDisplay.textContent = label;
+        valueDisplay.classList.add(className);
     });
 
     // Initial calculation
