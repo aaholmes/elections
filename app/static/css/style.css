@@ -159,7 +159,7 @@ input[type="number"] {
 }
 
 .distribution-chart-container {
-    margin-top: 2rem;
+    margin-top: 1rem;
     padding: 1rem;
     background: white;
     border-radius: 8px;
@@ -172,4 +172,24 @@ input[type="number"] {
 canvas#distributionChart {
     width: 100% !important;
     height: 100% !important;
+}
+
+.results-summary {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.results-summary p {
+    margin: 0.5rem 0;
+    font-size: 1.2em;
+}
+
+.highlight {
+    font-weight: bold;
+    font-size: 1.3em;
+    color: #2196F3;
 }

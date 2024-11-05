@@ -66,29 +66,25 @@ document.addEventListener('DOMContentLoaded', function() {
     updateStateCardColors();
 
     function updateResults(results) {
-        console.log('Updating results:', results);  // Debug log
         const resultsDiv = document.getElementById('results');
         resultsDiv.style.display = 'block';
         
+        // Update text results
+        const probabilitySpan = resultsDiv.querySelector('.probability .highlight');
+        const evSpan = resultsDiv.querySelector('.ev-count .highlight');
+        
+        if (probabilitySpan) probabilitySpan.textContent = `${results.probability}%`;
+        if (evSpan) evSpan.textContent = `${results.expected_votes}`;
+        
         if (results.distribution) {
-            console.log('Distribution data:', results.distribution);  // Debug log
             createDistributionChart(results.distribution);
-        } else {
-            console.log('No distribution data found');  // Debug log
         }
     }
 
     function createDistributionChart(distribution) {
         const ctx = document.getElementById('distributionChart');
-        if (!ctx) {
-            console.error('Could not find distributionChart canvas element');
-            return;
-        }
+        if (!ctx) return;
 
-        // Get the context once
-        const context = ctx.getContext('2d');
-        
-        // Properly destroy existing chart
         if (window.distributionChart instanceof Chart) {
             window.distributionChart.destroy();
         }
@@ -108,21 +104,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Convert to percentages
         const dataAsPercentages = data.map(p => p * 100);
 
-        // Create gradient
-        const gradient = context.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(33, 150, 243, 0.8)');
-        gradient.addColorStop(1, 'rgba(33, 150, 243, 0.2)');
+        // Create color array based on electoral vote threshold
+        const backgroundColor = labels.map(votes => {
+            if (votes >= 270) {
+                return 'rgba(0, 0, 255, 0.6)';  // Blue for Democratic win
+            } else {
+                return 'rgba(255, 0, 0, 0.6)';  // Red for Republican win
+            }
+        });
 
-        // Create new chart
-        window.distributionChart = new Chart(context, {
+        window.distributionChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
                     label: 'Probability Distribution',
                     data: dataAsPercentages,
-                    backgroundColor: gradient,
-                    borderColor: 'rgba(33, 150, 243, 1)',
+                    backgroundColor: backgroundColor,
+                    borderColor: backgroundColor.map(color => color.replace('0.6', '1')),
                     borderWidth: 1
                 }]
             },
@@ -136,11 +135,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return `Probability: ${context.raw.toFixed(1)}%`;
-                            },
-                            title: function(context) {
-                                const value = parseInt(context[0].label);
-                                return `${value}-${value + 9} Electoral Votes`;
+                                const votes = parseInt(context.label);
+                                const probability = context.raw.toFixed(1);
+                                const winner = votes >= 270 ? 'Democratic' : 'Republican';
+                                return [
+                                    `${votes}-${votes + 9} Electoral Votes`,
+                                    `Probability: ${probability}%`,
+                                    `Winner: ${winner}`
+                                ];
                             }
                         }
                     }

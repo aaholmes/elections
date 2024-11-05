@@ -65,17 +65,15 @@
 <div id="results" class="results-section" {% if not results %}style="display: none;"{% endif %}>
     <h2>Results</h2>
     <div class="results-visualization">
-        <div class="ev-meter">
-            <div class="ev-bar" style="width: {{ (results.expected_votes/538*100) if results else 0 }}%"></div>
-            <div class="ev-marker" style="left: 50%">270</div>
-        </div>
         {% if results %}
-            <p class="probability">Probability of winning: <span class="highlight">{{ results.probability }}%</span></p>
-            <p class="ev-count">Expected electoral votes: <span class="highlight">{{ results.expected_votes }}</span></p>
+            <div class="results-summary">
+                <p class="probability">Probability of Democratic Victory: <span class="highlight">{{ results.probability }}%</span></p>
+                <p class="ev-count">Expected Electoral Votes: <span class="highlight">{{ results.expected_votes }}</span></p>
+            </div>
         {% endif %}
         
         <div class="distribution-chart-container">
-            <canvas id="distributionChart" width="400" height="200"></canvas>
+            <canvas id="distributionChart"></canvas>
         </div>
     </div>
 </div>
