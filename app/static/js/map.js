@@ -10,9 +10,18 @@ async function initializeMap() {
         const width = 800;
         const height = 500;
         
-        // Clear any existing SVG
+        // Clear existing elements
         d3.select('#us-map svg').remove();
+        d3.select('#state-hover-info').remove();
         
+        // Create hover info element
+        const hoverInfo = d3.select('body')
+            .append('div')
+            .attr('id', 'state-hover-info')
+            .attr('class', 'state-hover-info')
+            .style('display', 'none');
+        
+        // Create SVG
         const svg = d3.select('#us-map')
             .append('svg')
             .attr('width', width)
@@ -22,7 +31,6 @@ async function initializeMap() {
         // Load map data
         const response = await fetch('/test-map');
         const us = await response.json();
-        console.log("Map data loaded, features:", us.features.length);
         
         // Create projection
         const projection = d3.geoAlbersUsa()
@@ -30,33 +38,80 @@ async function initializeMap() {
         
         const path = d3.geoPath().projection(projection);
         
-        // Draw states with a simple style first
-        const states = svg.append('g')
-            .selectAll('path')
+        // Draw states
+        svg.selectAll('path')
             .data(us.features)
             .enter()
             .append('path')
             .attr('d', path)
-            .style('fill', '#ddd')
-            .style('stroke', '#fff')
-            .style('stroke-width', '1px');
-            
-        console.log("Basic map drawn");
-        
-        // If basic map works, add interactivity
-        states
             .attr('class', 'state')
-            .attr('id', d => STATE_NAMES_TO_POSTAL[d.properties.name])
+            .attr('id', d => STATE_NAMES_TO_POSTAL[d.properties.NAME])
             .style('fill', d => getStateColor(50))
+            .style('stroke', '#fff')
+            .style('stroke-width', '1px')
             .on('mouseover', function(event, d) {
-                d3.select(this).style('opacity', 0.8);
-                console.log("Hover on state:", d.properties.name);
+                const stateName = d.properties.NAME;
+                const stateCode = STATE_NAMES_TO_POSTAL[stateName];
+                console.log("State Name:", stateName);
+                console.log("State Code:", stateCode);
+                
+                if (stateCode && STATE_DATA[stateCode]) {
+                    const currentValue = stateSliders[stateCode] || 50;
+                    
+                    // Show hover info
+                    hoverInfo
+                        .style('display', 'block')
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px')
+                        .html(`
+                            <div class="hover-content">
+                                <h3>${stateName}</h3>
+                                <p><strong>${STATE_DATA[stateCode].votes} Electoral Votes</strong></p>
+                                <div class="probability-slider-container">
+                                    <p>Democratic Win Probability:</p>
+                                    <input type="range" 
+                                        class="probability-slider" 
+                                        min="1" 
+                                        max="99" 
+                                        value="${currentValue}" 
+                                        step="1">
+                                    <span class="slider-value">${currentValue}%</span>
+                                </div>
+                            </div>
+                        `);
+                    
+                    // Add slider event listener
+                    const slider = hoverInfo.select('.probability-slider').node();
+                    if (slider) {
+                        slider.oninput = function() {
+                            const value = this.value;
+                            stateSliders[stateCode] = parseInt(value);
+                            d3.select(`#${stateCode}`).style('fill', getStateColor(value));
+                            hoverInfo.select('.slider-value').text(value + '%');
+                            calculateAndUpdateChart();
+                        };
+                    }
+                    
+                    // Highlight state
+                    d3.select(this).style('opacity', 0.8);
+                }
             })
             .on('mouseout', function() {
+                const stateCode = d3.select(this).attr('id');
                 d3.select(this).style('opacity', 1);
+                if (!hoverInfo.node().matches(':hover')) {
+                    hoverInfo.style('display', 'none');
+                }
             });
-            
-        console.log("Map interactivity added");
+        
+        // Add mouseout handler to hover info
+        hoverInfo.on('mouseleave', function() {
+            hoverInfo.style('display', 'none');
+            svg.selectAll('.state')
+                .style('opacity', 1);
+        });
+        
+        console.log("Map initialization complete");
         
     } catch (error) {
         console.error('Error in map initialization:', error);
