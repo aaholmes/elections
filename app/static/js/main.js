@@ -104,16 +104,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Convert to percentages
         const dataAsPercentages = data.map(p => p * 100);
 
-        // Calculate total probabilities for each party
-        const repProb = dataAsPercentages.slice(0, 27).reduce((a, b) => a + b, 0);
-        const demProb = dataAsPercentages.slice(27).reduce((a, b) => a + b, 0);
+        // Calculate total probabilities for each outcome
+        // Republican win: 0-268
+        const repProb = distribution.slice(0, 269).reduce((a, b) => a + b, 0) * 100;
+        // Tie: 269
+        const tieProb = distribution[269] * 100;
+        // Democratic win: 270-538
+        const demProb = distribution.slice(270).reduce((a, b) => a + b, 0) * 100;
 
         // Create color array based on electoral vote threshold
         const backgroundColor = labels.map(votes => {
-            if (votes >= 270) {
+            if (votes > 269) {
                 return 'rgba(0, 0, 255, 0.6)';  // Blue for Democratic win
-            } else {
+            } else if (votes < 269) {
                 return 'rgba(255, 0, 0, 0.6)';  // Red for Republican win
+            } else {
+                return 'rgba(128, 128, 128, 0.6)';  // Gray for tie
             }
         });
 
@@ -141,11 +147,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: function(context) {
                                 const votes = parseInt(context.label);
                                 const probability = context.raw.toFixed(1);
-                                const winner = votes >= 270 ? 'Democratic' : 'Republican';
+                                let winner;
+                                if (votes > 269) {
+                                    winner = 'Democratic';
+                                } else if (votes < 269) {
+                                    winner = 'Republican';
+                                } else {
+                                    winner = 'Tie';
+                                }
                                 return [
                                     `${votes}-${votes + 9} Electoral Votes`,
                                     `Probability: ${probability}%`,
-                                    `Winner: ${winner}`
+                                    `Outcome: ${winner}`
                                 ];
                             }
                         }
@@ -188,15 +201,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     ctx.fillStyle = 'rgb(255, 0, 0)';
                     ctx.fillText(
                         `Republican Win: ${repProb.toFixed(1)}%`,
-                        chart.width * 0.25,
+                        chart.width * 0.2,
                         30
                     );
+                    
+                    // Tie probability (if non-zero)
+                    if (tieProb > 0.001) {  // Only show if greater than 0.001%
+                        ctx.fillStyle = 'rgb(0, 0, 0)';
+                        ctx.fillText(
+                            `Tie: ${tieProb.toFixed(1)}%`,
+                            chart.width * 0.5,
+                            30
+                        );
+                    }
                     
                     // Democratic probability
                     ctx.fillStyle = 'rgb(0, 0, 255)';
                     ctx.fillText(
                         `Democratic Win: ${demProb.toFixed(1)}%`,
-                        chart.width * 0.75,
+                        chart.width * 0.8,
                         30
                     );
                     
