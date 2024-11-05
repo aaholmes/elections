@@ -104,6 +104,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Convert to percentages
         const dataAsPercentages = data.map(p => p * 100);
 
+        // Calculate total probabilities for each party
+        const repProb = dataAsPercentages.slice(0, 27).reduce((a, b) => a + b, 0);
+        const demProb = dataAsPercentages.slice(27).reduce((a, b) => a + b, 0);
+
         // Create color array based on electoral vote threshold
         const backgroundColor = labels.map(votes => {
             if (votes >= 270) {
@@ -169,7 +173,36 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 }
-            }
+            },
+            plugins: [{
+                id: 'probability-labels',
+                afterDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    
+                    // Set text properties
+                    ctx.font = 'bold 24px Arial';
+                    ctx.textAlign = 'center';
+                    
+                    // Republican probability
+                    ctx.fillStyle = 'rgb(255, 0, 0)';
+                    ctx.fillText(
+                        `Republican Win: ${repProb.toFixed(1)}%`,
+                        chart.width * 0.25,
+                        30
+                    );
+                    
+                    // Democratic probability
+                    ctx.fillStyle = 'rgb(0, 0, 255)';
+                    ctx.fillText(
+                        `Democratic Win: ${demProb.toFixed(1)}%`,
+                        chart.width * 0.75,
+                        30
+                    );
+                    
+                    ctx.restore();
+                }
+            }]
         });
     }
 
