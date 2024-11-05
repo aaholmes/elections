@@ -31,4 +31,7 @@ def calculate():
                 }
     
     results = calculate_probability(state_data)
-    return render_template('index.html', states=STATE_DATA, results=results)
+    return render_template('index.html', 
+                         states=STATE_DATA, 
+                         results=results,
+                         distribution=results['distribution'])

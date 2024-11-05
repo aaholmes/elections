@@ -156,4 +156,13 @@ input[type="number"] {
 
 .calculate-btn:hover {
     background-color: #1976D2;
+}
+
+.distribution-chart-container {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 300px;
 } 
