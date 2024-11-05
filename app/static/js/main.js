@@ -1,58 +1,24 @@
-function getProbabilityLabel(value) {
-    const numValue = parseFloat(value);
-    if (numValue < 13) return ["Safe R", "safe-r"];
-    if (numValue < 38) return ["Likely R", "likely-r"];
-    if (numValue < 62) return ["Toss-up", "toss-up"];
-    if (numValue < 87) return ["Likely D", "likely-d"];
-    return ["Safe D", "safe-d"];
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Make sure Chart.js is loaded
-    if (typeof Chart === 'undefined') {
-        console.error('Chart.js not loaded!');
-        return;
-    }
-
-    // Initialize all sliders
-    document.querySelectorAll('.probability-slider').forEach(slider => {
-        slider.addEventListener('input', () => {
-            // Update label
-            const [label, className] = getProbabilityLabel(slider.value);
-            const valueDisplay = slider.nextElementSibling;
-            valueDisplay.textContent = label;
-            
-            // Remove all possible classes and add the current one
-            valueDisplay.classList.remove('safe-r', 'likely-r', 'toss-up', 'likely-d', 'safe-d');
-            valueDisplay.classList.add(className);
-            
-            calculateAndUpdateChart();
-        });
-        
-        // Set initial labels and classes
-        const [label, className] = getProbabilityLabel(slider.value);
-        const valueDisplay = slider.nextElementSibling;
-        valueDisplay.textContent = label;
-        valueDisplay.classList.add(className);
+    console.log('DOM Content Loaded');
+    
+    // Initialize all states with 50% probability
+    Object.keys(STATE_DATA).forEach(stateCode => {
+        stateSliders[stateCode] = 50;
     });
-
+    
     // Initial calculation
     calculateAndUpdateChart();
 });
 
 function calculateAndUpdateChart() {
+    console.log("Calculating with sliders:", stateSliders); // Debug log
+    
     const formData = new FormData();
     
-    document.querySelectorAll('.probability-slider').forEach(slider => {
-        const stateCode = slider.id.split('-')[0];
-        let probability;
-        const value = parseFloat(slider.value);
-        if (value < 13) probability = 0.01;
-        else if (value < 38) probability = 0.25;
-        else if (value < 62) probability = 0.50;
-        else if (value < 87) probability = 0.75;
-        else probability = 0.99;
-        formData.append(`${stateCode}-quick`, probability);
+    // Add all state probabilities to the form data
+    Object.entries(stateSliders).forEach(([stateCode, value]) => {
+        formData.append(`${stateCode}-quick`, value / 100);
+        console.log(`${stateCode}: ${value / 100}`); // Debug log
     });
 
     fetch('/calculate', {
@@ -61,46 +27,33 @@ function calculateAndUpdateChart() {
     })
     .then(response => response.json())
     .then(results => {
-        if (!results.distribution) {
-            console.error('No distribution in results:', results);
-            return;
+        console.log('Server response:', results); // Debug log
+        if (results.distribution) {
+            createDistributionChart(results.distribution);
+        } else {
+            console.error('No distribution in results');
         }
-        
-        createDistributionChart(results.distribution);
     })
     .catch(error => console.error('Error:', error));
 }
 
 function createDistributionChart(distribution) {
+    console.log("Creating chart with distribution:", distribution);
+    
     const ctx = document.getElementById('distributionChart');
-    if (!ctx) return;
+    if (!ctx) {
+        console.error('Could not find distributionChart canvas');
+        return;
+    }
 
     if (window.distributionChart instanceof Chart) {
         window.distributionChart.destroy();
     }
 
-    // Calculate probabilities
+    // Calculate probabilities for display
     const repProb = distribution.slice(0, 269).reduce((a, b) => a + b, 0) * 100;
     const tieProb = distribution[269] * 100;
     const demProb = distribution.slice(270).reduce((a, b) => a + b, 0) * 100;
-
-    // Calculate overall mean and std dev
-    let totalMean = 0;
-    let totalVar = 0;
-    
-    // Calculate overall mean
-    for (let ev = 0; ev < distribution.length; ev++) {
-        totalMean += ev * distribution[ev];
-    }
-
-    // Calculate overall variance
-    for (let ev = 0; ev < distribution.length; ev++) {
-        totalVar += Math.pow(ev - totalMean, 2) * distribution[ev];
-    }
-    
-    const totalStdDev = Math.sqrt(totalVar);
-    const repMean = 538 - totalMean;
-    const demMean = totalMean;
 
     // Bin the data
     const binSize = 10;
@@ -113,18 +66,23 @@ function createDistributionChart(distribution) {
         }
     });
 
-    // Create color arrays
-    const backgroundColors = [];
-    const borderColors = [];
-    for (let i = 0; i < numBins; i++) {
-        if (i * binSize < 270) {
-            backgroundColors.push('rgba(255, 0, 0, 0.6)');
-            borderColors.push('rgba(255, 0, 0, 1)');
-        } else {
-            backgroundColors.push('rgba(0, 0, 255, 0.6)');
-            borderColors.push('rgba(0, 0, 255, 1)');
-        }
+    // Calculate mean and std dev
+    let totalMean = 0;
+    let totalVar = 0;
+    
+    // Calculate mean
+    for (let ev = 0; ev < distribution.length; ev++) {
+        totalMean += ev * distribution[ev];
     }
+
+    // Calculate variance
+    for (let ev = 0; ev < distribution.length; ev++) {
+        totalVar += Math.pow(ev - totalMean, 2) * distribution[ev];
+    }
+    
+    const totalStdDev = Math.sqrt(totalVar);
+    const repMean = 538 - totalMean;
+    const demMean = totalMean;
 
     window.distributionChart = new Chart(ctx, {
         type: 'bar',
@@ -132,8 +90,22 @@ function createDistributionChart(distribution) {
             labels: Array.from({length: numBins}, (_, i) => i * binSize),
             datasets: [{
                 data: binnedData.map(p => p * 100),
-                backgroundColor: backgroundColors,
-                borderColor: borderColors,
+                backgroundColor: Array.from({length: numBins}, (_, i) => {
+                    const evValue = i * binSize;
+                    if (evValue >= 270) {
+                        return 'rgba(0, 0, 255, 0.6)';  // Democratic blue
+                    } else {
+                        return 'rgba(255, 0, 0, 0.6)';  // Republican red
+                    }
+                }),
+                borderColor: Array.from({length: numBins}, (_, i) => {
+                    const evValue = i * binSize;
+                    if (evValue >= 270) {
+                        return 'rgba(0, 0, 255, 1)';  // Democratic blue border
+                    } else {
+                        return 'rgba(255, 0, 0, 1)';  // Republican red border
+                    }
+                }),
                 borderWidth: 1
             }]
         },
@@ -170,10 +142,8 @@ function createDistributionChart(distribution) {
                 ctx.fillStyle = 'rgb(255, 0, 0)';
                 ctx.font = 'bold 24px Arial';
                 ctx.fillText(`Republican Win: ${repProb.toFixed(1)}%`, chart.width * 0.2, 30);
-                if (repProb > 0) {
-                    ctx.font = 'bold 18px Arial';
-                    ctx.fillText(`${Math.round(repMean)} ± ${Math.round(totalStdDev)} \nElectoral Votes`, chart.width * 0.2, 55);
-                }
+                ctx.font = 'bold 18px Arial';
+                ctx.fillText(`${Math.round(repMean)} ± ${Math.round(totalStdDev)} EV`, chart.width * 0.2, 55);
                 
                 // Tie probability (if significant)
                 if (tieProb > 0.001) {
@@ -186,10 +156,8 @@ function createDistributionChart(distribution) {
                 ctx.fillStyle = 'rgb(0, 0, 255)';
                 ctx.font = 'bold 24px Arial';
                 ctx.fillText(`Democratic Win: ${demProb.toFixed(1)}%`, chart.width * 0.8, 30);
-                if (demProb > 0) {
-                    ctx.font = 'bold 18px Arial';
-                    ctx.fillText(`${Math.round(demMean)} ± ${Math.round(totalStdDev)} \nElectoral Votes`, chart.width * 0.8, 55);
-                }
+                ctx.font = 'bold 18px Arial';
+                ctx.fillText(`${Math.round(demMean)} ± ${Math.round(totalStdDev)} EV`, chart.width * 0.8, 55);
                 
                 ctx.restore();
             }

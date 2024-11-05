@@ -1,34 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Results section first, and always visible -->
-<div id="results" class="results-section">
-    <div class="results-visualization">
-        <div class="distribution-chart-container">
-            <canvas id="distributionChart"></canvas>
+<div class="container">
+    <!-- Distribution Chart -->
+    <div class="distribution-chart-container">
+        <canvas id="distributionChart"></canvas>
+    </div>
+
+    <!-- Map -->
+    <div class="map-container">
+        <div id="us-map"></div>
+        <div id="state-hover-info" class="state-hover-info">
+            <h3 class="state-name"></h3>
+            <p class="electoral-votes"></p>
+            <div class="probability-slider-container">
+                <input type="range" class="probability-slider" min="1" max="99" value="50" step="24.5">
+                <span class="slider-value">Toss-up</span>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- State grid below -->
-<div class="state-grid">
-    {% for state_code, state in states.items() %}
-    <div class="state-card" data-state="{{ state_code }}">
-        <h3>{{ state.name }}</h3>
-        <p>Electoral Votes: {{ state.votes }}</p>
-        
-        <div class="probability-slider-container">
-            <input type="range" 
-                   class="probability-slider"
-                   id="{{ state_code }}-quick"
-                   name="{{ state_code }}-quick"
-                   min="1"
-                   max="99"
-                   value="50"
-                   step="24.5">
-            <span class="slider-value">Toss-up</span>
-        </div>
-    </div>
-    {% endfor %}
-</div>
+<!-- Add state data to JavaScript -->
+<script>
+    const STATE_DATA = {{ state_data|tojson|safe }};
+</script>
 {% endblock %}
