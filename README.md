@@ -59,7 +59,7 @@ http://localhost:5000
 ## Usage
 
 1. Hover over on any state to bring up the probability adjuster
-2. Use the slider to set Democratic win probability for that state
+2. Use the slider to set win probability for that state
 3. Watch the distribution chart update in real-time
 
 ## Future Enhancements
@@ -69,6 +69,7 @@ http://localhost:5000
 - Correlation between state probabilities
 - Tipping point state analysis
 - Mobile-friendly responsive design
+- Add third parties
 
 ## Contributing
 
