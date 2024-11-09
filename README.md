@@ -1,52 +1,93 @@
-# Electoral College Predictor
+# Electoral College Probability Simulator
 
-## Project Description
+An interactive visualization tool for exploring electoral college scenarios based on state-by-state win probabilities. Users can adjust Democratic win probabilities for each state and see how it affects the overall electoral vote distribution.
 
-The Electoral College Predictor is a web application that allows users to input polling data for each state in the US presidential election and calculates the probability of a candidate winning the election. This MVP (Minimum Viable Product) version provides a basic implementation of the core functionality.
+![Electoral College Simulator Screenshot](screenshot.png)
 
 ## Features
 
-- Input interface for entering poll percentages and margin of error for each state
-- Calculation of win probability for each state based on poll data
-- Computation of overall win probability for the election
-- Simple, responsive web interface
+### Interactive Map
+- Click any state to adjust win probabilities
+- Color coding reflects probability levels:
+  - Deep Red (Safe R): 1% Democratic win probability
+  - Light Red (Likely R): 25% Democratic win probability
+  - Pink (Lean R): 40% Democratic win probability
+  - Gray (Toss-up): 50% Democratic win probability
+  - Light Blue (Lean D): 60% Democratic win probability
+  - Blue (Likely D): 75% Democratic win probability
+  - Deep Blue (Safe D): 99% Democratic win probability
+- Hover information shows state name, electoral votes, and current probabilities
+- Special star marker for DC ensures easy access despite small geographic size
 
-## Technology Stack
+### Real-time Distribution Chart
+- Bar chart updates automatically as you adjust state probabilities
+- Shows probability distribution of total Democratic electoral votes
+- X-axis shows possible electoral vote totals
+- Y-axis shows probability of each outcome
 
-- Backend: Python with Flask
-- Frontend: HTML, JavaScript
-- Deployment: Heroku
+## Technical Details
 
-## How It Works
+Built with:
+- Python/Flask backend
+- D3.js for map visualization
+- Chart.js for probability distribution
+- Topojson for map data
 
-1. Users input poll percentages and margin of error for each state (or, alternatively, select a win probability using a sliding scale).
-2. The application uses a normal distribution model to convert poll data into win probabilities for each state.
-3. The overall win probability is calculated by combining the individual state probabilities.
-4. The distribution of probabilities of total electoral college votes is displayed in the web interface.
+## Setup
 
-## MVP Plan
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/electoral-college-simulator.git
+cd electoral-college-simulator
+```
 
-1. Create basic Flask application (30 mins)
-   - Set up the basic application structure
-   - Create a simple route to render the main page
-2. Create initial templates (1 hour)
-   - Design a basic form interface for state polling data
-   - Create a responsive grid layout for all 50 states + DC
-3. Set up basic state data structure (30 mins)
-   - Create a Python dictionary/class to hold state electoral votes
-   - Implement basic validation for poll inputs
+2. Install requirements:
+```bash
+pip install -r requirements.txt
+```
 
-### Next Steps After Initial Setup:
+3. Run the application:
+```bash
+python app.py
+```
 
-1. Implement the statistical calculation logic (2-3 hours)
-2. Add JavaScript for interactive features (2-3 hours)
-3. Create visualization components (2-3 hours)
-4. Add basic styling and responsiveness (2 hours)
+4. Open your browser and navigate to:
+```
+http://localhost:5000
+```
 
-### Total MVP Timeline:
+## Usage
 
-- Initial Setup: 2-3 hours
-- Core Functionality: 6-9 hours
-- Testing and Refinement: 2-3 hours
+1. Hover over on any state to bring up the probability adjuster
+2. Use the slider to set Democratic win probability for that state
+3. Watch the distribution chart update in real-time
 
-Total: 10-15 hours for a basic working MVP
+## Future Enhancements
+
+- Save and share functionality
+- Historical data integration
+- Correlation between state probabilities
+- Tipping point state analysis
+- Mobile-friendly responsive design
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Electoral vote data from the 2024 presidential election
+- US state boundary data from US Census Bureau
+
+## Author
+
+Adam Holmes
+
+## Contact
+
+- GitHub: [@aaholmes](https://github.com/aaholmes)
+- Email: adamaholmes@gmail.com
