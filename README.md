@@ -1,6 +1,6 @@
 # Electoral College Probability Simulator
 
-An interactive visualization tool for exploring electoral college scenarios based on state-by-state win probabilities. Users can adjust Democratic win probabilities for each state and see how it affects the overall electoral vote distribution.
+An interactive visualization tool for exploring electoral college scenarios based on state-by-state win probabilities. Users can adjust each party's win probabilities for each state and see how it affects the overall electoral vote distribution.
 
 ![Electoral College Simulator Screenshot](screenshot.png)
 
